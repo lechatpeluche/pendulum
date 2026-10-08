@@ -1,0 +1,52 @@
+Goal: develop a visualization of the motion of pendulums with N links. The interface lets the user configure the pendulums and start, pause, resume, and reset the visualization.
+
+Application format and technology stack
+
+Build a web application for desktop and smartphone browsers, with no backend or accounts. Use this stack: HTML5, CSS, plain JavaScript (ES2020+), and Canvas 2D. Deliver the application as a single self-contained index.html file with embedded styles and a classic inline script. On a desktop computer, it must work when opened directly in a browser through file://, without installing dependencies, compiling, building, running commands, or starting a server. Do not use TypeScript, frameworks, third-party libraries, CDNs, module imports, resource loading through fetch, or external fonts. All computation runs in the browser. Serving the same file through an ordinary static server is allowed for opening it by URL on a smartphone; this must not require changing the application or adding a separate application backend. Publishing the website is outside the scope of this task.
+
+Physics task
+
+Implement the motion of ideal planar multi-link pendulums. Positions must be computed correctly as a function of time using the full nonlinear equations of motion. Use numerical integration with error control; choose the internal time step to keep the motion accurate and visually smooth across the entire allowed parameter range. The rendering frame rate and the physics integration time step are different quantities. Do not replace the motion with independent sine waves or a small-angle approximation. Numerical accuracy must be supported by checks, not just by a plausible animation.
+
+Product requirements
+
+- The user can select between 1 and 4 independent pendulums. All selected pendulums start moving simultaneously from their specified initial conditions and are displayed at the same simulation time.
+- Each pendulum has its own number of links, from 1 to 4, and its own parameters for every link, numbered outward from the pivot.
+- Each link has a length from 0.25 to 5 m inclusive, with an input step of 0.01 m. A link is a massless, perfectly rigid rod of constant length.
+- A separate point mass is located at the far end of every link. Each mass ranges from 1 to 500 kg inclusive, with an input step of 0.01 kg. An intermediate mass is located at the joint connecting adjacent links. The user sets each mass separately.
+- The initial angle of each link is entered in degrees from -180 to 180 inclusive, with an input precision of 0.0001°. This is an absolute angle measured from the downward vertical, not an angle relative to the preceding link: 0° points down, +90° points right on the screen, -90° points left, and ±180° points up. Internal calculations must not be rounded to the input precision.
+- The initial angular velocities of all links are zero. Gravitational acceleration is g = 9.81 m/s², directed downward. Air resistance, joint friction, elasticity, actuators, and other effects are absent.
+- Motion is strictly 2D. There are no collisions between pendulums or within a pendulum: rods and masses may intersect. All pendulums share one fixed pivot at the center of a dedicated visualization area.
+- Joints can rotate freely through 360° without mechanical stops. The allowed range of initial angle input does not limit subsequent rotation. Do not introduce random impulses or hidden offsets.
+
+Controls and initial state
+
+- Provide the actions "Start", "Pause", "Resume", and "Reset". Start, Pause, and Resume may share a single button whose action changes with the state.
+- All configuration fields are editable before the first start and after a reset. Every valid change immediately updates the initial-position preview without starting motion. While running or paused, the number of pendulums, number of links, lengths, masses, and initial angles are locked.
+- If a value is empty or invalid, show a clear error next to the field and prevent starting. Keep the last valid preview; do not silently substitute another value.
+- Pausing preserves the current positions, velocities, time, and trails. Resuming continues from that state without catching up on the pause duration or any previous lag.
+- Reset stops the motion, sets time and angular velocities to zero, returns the pendulums to their specified initial positions, and clears the trails. Accepted configurations and the trail visibility setting are preserved, fields become editable again, and speed returns to x1. If the form contains invalid input, Reset restores the last valid configuration and clears the errors.
+- After starting, provide speeds x1, x2, x5, and x10, including while paused. Speedup means a corresponding increase in simulation time elapsed per second of real time. Changing the speed must not change the physical state itself or the accuracy of the computation.
+- Show the simulation time and selected speed. Simulation time freezes when the tab is hidden. On return, a previously running simulation resumes without jumping forward by the time spent away; a previously paused simulation remains paused.
+- If performance is insufficient, preserve physics accuracy and responsive controls, and indicate lag relative to the selected speed. Do not speed up the motion by silently increasing numerical error or skipping physical states.
+- On first opening, show 2 pendulums with 2 links each: all lengths are 1 m and all masses are 1 kg; the first pendulum's angles are [120°, -10°], and the second's are [120.01°, -10°]. Motion has not started, speed is x1, and trails are enabled. New links default to a length of 1 m, a mass of 1 kg, and an angle of 0°; new pendulums default to 2 links with those parameters.
+
+Motion trails
+
+- Provide one global toggle for the trails of the final masses of all pendulums. Draw the trajectory of the point at the end of the last link, not a trail of the entire rod or of every intermediate joint.
+- Each pendulum has its own stable, clearly distinguishable color, and its trail uses that color. Make the mapping between colors and pendulum numbers clear in the interface.
+- Trail lines must be very thin: target 0.6 CSS pixels, with a maximum thickness of 0.75 CSS pixels. They must be translucent and gradually fade toward the older end, without fills or glow, so they do not paint over the entire visualization area.
+- Show history only from the last 10 seconds of simulation time. Bound the stored history and remove old points. Trails do not age while paused. Speed x10 must not make a line thicker or darker merely because drawing accumulates more frequently.
+- The toggle is available in every state. Turning trails off hides and clears them; turning them on again starts them at the current positions of the final masses. This does not affect the physics. Resetting or editing the configuration clears the trails.
+
+Appearance
+
+The application should be visually clear, attractive, and minimalist. The entire product interface must be in English, including buttons, field labels, tooltips, validation errors, status messages, and the legend. Group and label each pendulum's settings, and show measurement units next to the fields. Buttons and fields must work well with a mouse, keyboard, and touch input.
+
+The visualization area and settings must not overlap. On a large screen, settings may be placed beside the scene; on a smartphone, place them in a separate block above or below it. Vertical scrolling is allowed, but horizontal overflow is not. Check viewport widths of 320, 390, 768, and 1440 CSS pixels and smartphone orientation changes.
+
+All pendulums use a shared meters-to-pixels scale. Base it on the greatest total length of the selected chains so they fit completely at every angle, including upward rotation. The scale stays stable during motion; resizing the scene changes only the display mapping. Identical pendulums may overlap: do not separate them artificially. Display masses as compact markers whose size does not hinder motion comparison or introduce a collision radius.
+
+Deliverables
+
+Create a working index.html in the current working directory, a short README.md explaining how to open and use the application and describing its numerical limitations, and reproducible checks of the physics and main user scenarios. Only index.html should be needed to run the application itself. Check constant link lengths, equilibrium, single- and multi-link pendulum motion, energy conservation, convergence as accuracy is increased, and correct control behavior. In your final message, list the files created, checks performed, and remaining limitations. Do not claim checks were performed if they were not.

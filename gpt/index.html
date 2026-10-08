@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Pendulum Lab — a study in motion</title>
+<style>
+:root{--paper:#f4f5f7;--surface:#fff;--ink:#202635;--muted:#717786;--line:#e5e7ed;--accent:#6554d9;--error:#b63535}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,select{font:inherit}button,select,input{touch-action:manipulation}button,select{cursor:pointer}button{border:1px solid var(--line);background:white;color:var(--ink);border-radius:9px;min-height:42px;padding:9px 15px;font-weight:600}button:hover:not(:disabled){background:#f1f0fb;border-color:#cac4ed}button:disabled{cursor:default;opacity:.4}button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #b6acf1;outline-offset:3px}input,select{min-width:0;max-width:100%;border:1px solid #dfe2e9;border-radius:7px;background:#fff;color:var(--ink);min-height:42px;padding:8px}input{width:100%;font-variant-numeric:tabular-nums}input:disabled,select:disabled{background:#f6f7f9;color:#757b88;cursor:not-allowed}input[aria-invalid="true"]{border-color:var(--error);background:#fff7f7}h1,h2,h3,p{margin:0}h1{font-size:25px;letter-spacing:-1px;font-weight:650}h1 span{font-weight:400;color:var(--muted)}h2{font-size:16px;letter-spacing:-.3px}h3{font-size:13px}small{font-size:11px}.shell{max-width:1480px;margin:auto;padding:28px 36px 36px}.page-header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:25px}.brand{display:flex;align-items:center;gap:12px}.brand-icon{width:39px;height:39px;background:#ebe8fb;border-radius:12px;display:grid;place-items:center;color:var(--accent)}.eyebrow{font-size:10px;letter-spacing:1.7px;text-transform:uppercase;color:var(--muted);font-weight:650}.local{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:12px}.local i{width:6px;height:6px;background:#519582;border-radius:50%}.layout{display:grid;grid-template-columns:minmax(0,1fr) 348px;align-items:start;gap:22px}.workspace{position:sticky;top:20px;min-width:0}.panel{border:1px solid var(--line);border-radius:15px;background:var(--surface);overflow:hidden;box-shadow:0 3px 14px #20263503}.scene-heading{padding:19px 22px 15px;display:flex;align-items:center;justify-content:space-between;gap:12px}.scene-heading p{font-size:12px;color:var(--muted);margin-top:2px}.status{font-size:11px;border:1px solid var(--line);background:#f8f9fb;border-radius:30px;padding:4px 10px;white-space:nowrap}.status[data-state="running"]{background:#eeebfc;color:#5947bb;border-color:#e2dcfb}.status[data-state="paused"]{background:#fff7e9;color:#8b691e}.scene{position:relative;height:clamp(350px,57vh,620px);background:#fafbfc;border-block:1px solid var(--line)}canvas{display:block;width:100%;height:100%}.scene-note{position:absolute;top:16px;left:20px;font-size:10px;color:#969baa;letter-spacing:.7px;pointer-events:none}.scale-note{position:absolute;right:18px;bottom:13px;font-size:10px;color:#8a909d;pointer-events:none}.legend{display:flex;gap:14px;flex-wrap:wrap;align-items:center;padding:14px 22px;border-bottom:1px solid var(--line);font-size:11px;color:var(--muted)}.legend-item{display:inline-flex;align-items:center;gap:6px}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--color);flex-shrink:0}.trail-label{display:flex;align-items:center;gap:7px;cursor:pointer;margin-left:auto;min-height:30px;color:var(--ink);white-space:nowrap}.trail-label input{width:15px;height:15px;min-height:0;margin:0;accent-color:var(--accent)}.controls{padding:18px 22px}.control-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.transport{display:flex;gap:8px}.primary{min-width:106px;background:var(--accent);border-color:var(--accent);color:#fff;display:flex;justify-content:center;align-items:center;gap:8px}.primary:hover:not(:disabled){background:#5544c2;border-color:#5544c2}.speed-control{display:flex;align-items:center;gap:10px}.speed-control>span{font-size:11px;color:var(--muted)}.speeds{display:flex;padding:3px;background:#f4f5f8;border:1px solid var(--line);border-radius:9px;gap:2px}.speeds button{padding:5px 10px;min-height:32px;border:0;background:transparent;border-radius:6px;font-size:12px;font-weight:500}.speeds button[aria-pressed="true"]{background:#fff;color:var(--accent);box-shadow:0 1px 4px #20263514}.metrics{display:flex;align-items:center;gap:25px;margin-top:19px;padding-top:15px;border-top:1px solid var(--line)}.metric{min-width:0}.metric-label{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:3px}.metric-value{font-size:19px;line-height:1.3;font-variant-numeric:tabular-nums;letter-spacing:-.5px}.metric-value .unit{font-size:11px;color:var(--muted);letter-spacing:0}.energy-value{font-size:13px;letter-spacing:0}.solver-mark{margin-left:auto;text-align:right;color:var(--muted);font-size:10px}.solver-mark strong{font-weight:500;color:#596171}.feedback{font-size:11px;color:var(--muted);margin-top:13px;min-height:17px}.feedback.warning{color:#986216}.feedback.error{color:var(--error)}.below-scene{display:flex;justify-content:space-between;gap:15px;margin:14px 4px;color:var(--muted);font-size:11px}.settings{padding:21px 18px}.settings-title{display:flex;justify-content:space-between;align-items:center;gap:8px}.settings-title span{font-size:10px;color:var(--muted)}.settings-intro{font-size:12px;color:var(--muted);margin:5px 0 18px}fieldset{min-width:0;margin:0;padding:0;border:0}.count-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:18px;border-bottom:1px solid var(--line);font-size:12px}.count-row select{width:78px}.pendulum-card{padding-top:18px}.pendulum-card+.pendulum-card{border-top:1px solid var(--line);margin-top:18px}.pendulum-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}.pendulum-name{display:flex;align-items:center;gap:8px}.link-count{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}.link-count select{padding:5px 7px;min-height:34px;width:49px}.link-row+.link-row{margin-top:12px}.link-label{font-size:10px;color:#7c8290;margin-bottom:5px}.fields{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:7px}.field{min-width:0}.field label{display:block;font-size:10px;color:var(--muted);margin-bottom:4px}.field input{padding:8px 6px;font-size:12px}.field-error{display:block;color:var(--error);font-size:10px;line-height:1.3;margin-top:4px;overflow-wrap:anywhere}.field-error:empty{display:none}.angle-help{font-size:11px;color:var(--muted);padding:15px 0 0;margin-top:18px;border-top:1px solid var(--line)}details{margin:17px 3px 0;color:var(--muted);font-size:11px}summary{cursor:pointer;color:#555d6c;min-height:30px}details p{margin:8px 0}footer{font-size:10px;color:#8c92a0;margin-top:25px;display:flex;justify-content:space-between;gap:12px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(min-width:1500px){.shell{padding-top:38px}}
+@media(max-width:1050px){.shell{padding:22px}.layout{grid-template-columns:minmax(0,1fr) 316px;gap:16px}.scene-heading,.legend,.controls{padding-left:16px;padding-right:16px}.metrics{gap:17px}.solver-mark{display:none}}
+@media(max-width:800px){.shell{padding:20px}.layout{grid-template-columns:1fr;gap:18px}.workspace{position:static}.scene{height:480px}.settings{padding:20px}#pendulum-cards{display:grid;grid-template-columns:1fr 1fr;gap:20px}.pendulum-card+.pendulum-card{margin-top:0;border-top:0}.angle-help{margin-top:20px}.solver-mark{display:block}}
+@media(max-width:520px){.shell{padding:16px 12px 23px}.page-header{margin-bottom:18px}.brand{gap:9px}h1{font-size:22px}.eyebrow{font-size:8px;letter-spacing:1.1px}.local{font-size:0}.local i{width:7px;height:7px}.scene{height:350px}.scene-heading{padding:15px 14px}.scene-heading p{font-size:11px}.scene-heading h2{font-size:14px}.scene-note{left:14px;font-size:9px}.legend{padding:9px 14px;gap:10px}.trail-label{font-size:11px}.controls{padding:15px 14px}.control-row{gap:14px}.speed-control{width:100%;justify-content:space-between}.speeds{flex:1;max-width:230px}.speeds button{flex:1;min-height:35px}.transport{width:100%}.transport button{flex:1}.metrics{gap:19px}.solver-mark{display:none}.below-scene{font-size:10px}.settings{padding:18px 14px}#pendulum-cards{display:block}.pendulum-card+.pendulum-card{border-top:1px solid var(--line);margin-top:18px}.fields{gap:8px}.field input{font-size:16px}select{font-size:16px}.link-count select{min-height:42px}.trail-label{min-height:40px}.field label{font-size:11px}footer{font-size:9px}.metric-value{font-size:20px}.energy-value{font-size:13px}}
+@media(max-height:500px) and (orientation:landscape){.scene{height:340px}.workspace{position:static}}
+</style>
+</head>
+<body>
+<div class="shell">
+<header class="page-header">
+  <div class="brand"><div class="brand-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M8 5L19 13L13 23" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="5" r="2" fill="currentColor"/><circle cx="19" cy="13" r="2.5" fill="currentColor"/><circle cx="13" cy="23" r="3" fill="currentColor"/></svg></div><div><div class="eyebrow">A study in motion</div><h1>Pendulum <span>Lab</span></h1></div></div>
+  <div class="local"><i></i> Local, by design</div>
+</header>
+<main class="layout">
+<div class="workspace">
+<section class="panel" aria-label="Pendulum visualization">
+  <div class="scene-heading"><div><h2>Motion space</h2><p>Simple rules. Remarkable trajectories.</p></div><span id="status" class="status" role="status" data-state="ready">Ready</span></div>
+  <div class="scene"><canvas id="scene" role="img" aria-label="Planar pendulums at one shared central pivot. Their colors match the numbered settings.">Your browser needs Canvas 2D to display the pendulums.</canvas><div class="scene-note">SHARED PIVOT · g = 9.81 m/s²</div><div class="scale-note" id="scale-note"></div></div>
+  <div class="legend"><div id="legend" style="display:contents"></div><label class="trail-label"><input id="trails" type="checkbox" checked> Trails <span style="color:var(--muted)">/ 10 s</span></label></div>
+  <div class="controls">
+    <div class="control-row"><div class="transport"><button id="start" class="primary"><span id="action-icon" aria-hidden="true">▶</span><span id="action-label">Start</span></button><button id="reset">↺ &nbsp;Reset</button></div><div class="speed-control"><span>Speed</span><div class="speeds" role="group" aria-label="Simulation speed"><button data-speed="1" aria-pressed="true" disabled>×1</button><button data-speed="2" aria-pressed="false" disabled>×2</button><button data-speed="5" aria-pressed="false" disabled>×5</button><button data-speed="10" aria-pressed="false" disabled>×10</button></div></div></div>
+    <div class="metrics"><div class="metric"><div class="metric-label">Simulation time</div><div class="metric-value"><span id="time">0.000</span> <span class="unit">s</span></div></div><div class="metric"><div class="metric-label">Selected speed</div><div class="metric-value" id="speed">×1</div></div><div class="metric" title="Maximum current energy error across pendulums, divided by each pendulum's gravitational energy scale g ∑(downstream mass × length). Not divided by near-zero initial energy."><div class="metric-label">Energy drift</div><div class="metric-value energy-value" id="energy">0.00e+0</div></div><div class="solver-mark"><strong>Adaptive RK 5(4)</strong><br>Full nonlinear dynamics</div></div>
+    <p id="feedback" class="feedback" role="status">Adjust the setup, then set it in motion.</p>
+  </div>
+</section>
+<div class="below-scene"><span>One origin. No collisions. No damping.</span><span>Angles from the downward vertical.</span></div>
+<details><summary>About the model & numerical accuracy</summary><p>Each rod is massless and rigid, with a point mass at its far end. Angles are absolute, not relative to the previous rod. Every chain uses the same spatial scale and simulation clock. Nearly identical pendulums can overlap exactly; no artificial separation is added.</p><p>The coupled mass-matrix equations are solved with Cholesky factorization and adaptive Dormand–Prince 5(4) integration. Local error tolerances are 10⁻¹¹ absolute and 10⁻⁹ scaled; steps are at most 1/120 s. The energy readout is a numerical diagnostic, not an energy correction.</p><p>Chaotic motion eventually diverges even with tight tolerances. Local error control cannot guarantee exact long-term trajectories or exact energy conservation. If computation cannot keep up, simulation time advances more slowly, with a compute-limit notice. Unfinished wall-clock demand is not replayed later. Hidden tabs freeze simulation time.</p><p>Trails show only the last 10 simulation seconds, sampled at 120 Hz. They are a rendering approximation, not extra physical forces; very fast turns may be undersampled.</p></details>
+</div>
+<aside class="panel settings" aria-labelledby="settings-heading">
+  <div class="settings-title"><h2 id="settings-heading">The setup</h2><span id="edit-state">EDITABLE</span></div><p class="settings-intro" id="settings-hint">A tiny difference can change everything.</p>
+  <fieldset id="configuration"><legend class="sr-only">Pendulum configuration</legend><div class="count-row"><label for="pendulum-count">Independent pendulums</label><select id="pendulum-count"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></div><div id="pendulum-cards"></div></fieldset>
+  <p class="angle-help"><strong>0°</strong> down &nbsp;·&nbsp; <strong>+90°</strong> right &nbsp;·&nbsp; <strong>−90°</strong> left<br>Links are numbered outward from the pivot. All initial angular velocities are zero.</p>
+</aside>
+</main>
+<footer><span>PENDULUM LAB / A browser-based experiment</span><span>No accounts. No network. Just physics.</span></footer>
+</div>
+<script>
+"use strict";
+
+// Pure numerical core. Also evaluated directly by tests/physics-checks.cjs.
+const PendulumPhysics = (() => {
+  const G = 9.81, SAMPLE_HZ = 120;
+  const A = [[], [1/5], [3/40,9/40], [44/45,-56/15,32/9],
+    [19372/6561,-25360/2187,64448/6561,-212/729],
+    [9017/3168,-355/33,46732/5247,49/176,-5103/18656],
+    [35/384,0,500/1113,125/192,-2187/6784,11/84]];
+  const B = A[6];
+  const E = [35/384-5179/57600,0,500/1113-7571/16695,125/192-393/640,
+    -2187/6784+92097/339200,11/84-187/2100,-1/40];
+  // Preserve explicitly entered inverted equilibria: sin(±π) is exactly zero,
+  // rather than a floating-point residual that would seed an unstable motion.
+  const sin = a => Math.abs(a)===Math.PI ? 0 : Math.sin(a);
+  const clone = value => JSON.parse(JSON.stringify(value));
+  const newLink = () => ({length:1,mass:1,angle:0});
+  const newPendulum = () => ({links:[newLink(),newLink()]});
+  const defaults = () => [120,120.01].map(angle => ({links:[{length:1,mass:1,angle},{length:1,mass:1,angle:-10}]}));
+  const rules = {length:{min:.25,max:5,step:.01,unit:"m"},mass:{min:1,max:500,step:.01,unit:"kg"},angle:{min:-180,max:180,step:.0001,unit:"°"}};
+  function validate(raw, key) {
+    const rule = rules[key];
+    if (String(raw).trim() === "") return "Enter a value.";
+    const value = Number(raw);
+    if (!Number.isFinite(value)) return "Enter a finite number.";
+    if (value < rule.min || value > rule.max) return `Use ${rule.min} to ${rule.max} ${rule.unit}.`;
+    const steps = (value - rule.min) / rule.step;
+    if (Math.abs(steps - Math.round(steps)) > 1e-6) return `Use increments of ${rule.step} ${rule.unit}.`;
+    return "";
+  }
+  function positions(chain, y, offset=0) {
+    let x=0, z=0;
+    return chain.links.map((link,i) => {
+      x += link.length * sin(y[offset+i]);
+      z += link.length * Math.cos(y[offset+i]);
+      return {x,y:z};
+    });
+  }
+  function energy(chain, y, offset=0) {
+    const n=chain.links.length;
+    let vx=0,vy=0,z=0,total=0;
+    for(let i=0;i<n;i++) {
+      const {length:l,mass:m}=chain.links[i], a=y[offset+i], w=y[offset+n+i];
+      vx += l*Math.cos(a)*w; vy -= l*Math.sin(a)*w; z += l*Math.cos(a);
+      total += .5*m*(vx*vx+vy*vy)-m*G*z;
+    }
+    return total;
+  }
+  class System {
+    constructor(config, {rtol=1e-9,atol=1e-11,maxStep=1/SAMPLE_HZ}={}) {
+      this.config=clone(config); this.rtol=rtol; this.atol=atol; this.maxStep=maxStep;
+      this.t=0; this.h=Math.min(.001,maxStep); this.sampleIndex=1;
+      this.accepted=0; this.rejected=0; this.evaluations=0; this.dimension=0;
+      this.chains=this.config.map(chain => {
+        const n=chain.links.length, offset=this.dimension; this.dimension += 2*n;
+        const sums=new Float64Array(n);
+        for(let i=n-1;i>=0;i--) sums[i]=chain.links[i].mass+(sums[i+1]||0);
+        return {chain,n,offset,sums,L:new Float64Array(n*n),rhs:new Float64Array(n),solution:new Float64Array(n),energyScale:G*sums.reduce((s,m,i)=>s+m*chain.links[i].length,0)};
+      });
+      this.y=new Float64Array(this.dimension);
+      this.chains.forEach(({chain,offset})=>chain.links.forEach((link,i)=>{this.y[offset+i]=link.angle*Math.PI/180;}));
+      this.initialEnergy=this.chains.map(c=>energy(c.chain,this.y,c.offset));
+      this.k=Array.from({length:7},()=>new Float64Array(this.dimension));
+      this.work=new Float64Array(this.dimension); this.candidate=new Float64Array(this.dimension);
+      this.velocityMask=new Uint8Array(this.dimension);
+      this.chains.forEach(c=>this.velocityMask.fill(1,c.offset+c.n,c.offset+2*c.n));
+    }
+    derivative(y,out) {
+      this.evaluations++;
+      for(const c of this.chains) {
+        const {chain,n,offset:o,sums:S,L,rhs,solution:q}=c;
+        // M_ij = S_max(i,j) l_i l_j cos(theta_i-theta_j).
+        // Solve B q = rhs/l_i, with B_ij=M_ij/(l_i l_j), q_j=l_j*alpha_j.
+        // This length scaling improves conditioning without changing the equations.
+        for(let i=0;i<n;i++) {
+          const ai=y[o+i]; out[o+i]=y[o+n+i];
+          let b=-G*S[i]*sin(ai);
+          for(let j=0;j<n;j++) b-=S[Math.max(i,j)]*chain.links[j].length*Math.sin(ai-y[o+j])*y[o+n+j]**2;
+          rhs[i]=b;
+          for(let j=0;j<=i;j++) {
+            let v=S[Math.max(i,j)]*Math.cos(ai-y[o+j]);
+            for(let k=0;k<j;k++) v-=L[i*n+k]*L[j*n+k];
+            if(i===j) {
+              if(!(v>0) || !Number.isFinite(v)) throw new Error("The mass-matrix solve failed. Reset to try again.");
+              L[i*n+j]=Math.sqrt(v);
+            } else L[i*n+j]=v/L[j*n+j];
+          }
+        }
+        for(let i=0;i<n;i++) {
+          let v=rhs[i]; for(let j=0;j<i;j++) v-=L[i*n+j]*q[j]; q[i]=v/L[i*n+i];
+        }
+        for(let i=n-1;i>=0;i--) {
+          let v=q[i]; for(let j=i+1;j<n;j++) v-=L[j*n+i]*q[j]; q[i]=v/L[i*n+i];
+          out[o+n+i]=q[i]/chain.links[i].length;
+        }
+      }
+      return out;
+    }
+    // One accepted or rejected adaptive attempt. Rejection never advances physical time.
+    step(target, onSample) {
+      const sampleTime=this.sampleIndex/SAMPLE_HZ;
+      const boundary=Math.min(target,sampleTime);
+      const proposed=Math.min(this.h,this.maxStep),remaining=boundary-this.t;
+      // Land directly on a boundary when only roundoff separates it from the step.
+      const h=remaining<=proposed*(1+1e-12)?remaining:proposed;
+      if(!(h>0)) return false;
+      if(this.t+h===this.t || (h<1e-12 && boundary-this.t>1e-12)) throw new Error("Numerical time-step limit reached. Reset the simulation.");
+      const {y,k,work,candidate}=this, d=this.dimension;
+      this.derivative(y,k[0]);
+      for(let s=1;s<7;s++) {
+        for(let i=0;i<d;i++) {
+          let sum=0; for(let j=0;j<s;j++) sum+=A[s][j]*k[j][i];
+          work[i]=y[i]+h*sum;
+        }
+        this.derivative(work,k[s]);
+      }
+      let error=0;
+      for(let i=0;i<d;i++) {
+        let sum=0,err=0;
+        for(let s=0;s<7;s++) {sum+=(B[s]||0)*k[s][i];err+=E[s]*k[s][i];}
+        candidate[i]=y[i]+h*sum;
+        // Angles use a fixed one-radian scale: accumulated rotations must not loosen accuracy.
+        const scale=this.atol+this.rtol*(this.velocityMask[i]?Math.max(1,Math.abs(y[i]),Math.abs(candidate[i])):1);
+        error=Math.max(error,Math.abs(h*err)/scale);
+      }
+      if(!Number.isFinite(error)) throw new Error("Non-finite integration result. Reset the simulation.");
+      const factor=error===0?5:Math.min(5,Math.max(.1,.9*error**(-.2)));
+      // A short output/frame boundary must not collapse the next adaptive step.
+      this.h=Math.min(this.maxStep,h<proposed&&factor>=1?Math.max(proposed,h*factor):h*factor);
+      if(error>1) {this.rejected++;return false;}
+      this.y.set(candidate); this.t=h===boundary-this.t?boundary:this.t+h; this.accepted++;
+      if(this.t===sampleTime) {this.sampleIndex++;if(onSample) onSample(this.t,this);}
+      return true;
+    }
+    advanceTo(target, budgetMs=Infinity, onSample) {
+      const start=performance.now(); let attempts=0;
+      while(this.t<target) {
+        if(attempts && performance.now()-start>=budgetMs) break;
+        this.step(target,onSample); attempts++;
+        if(attempts>1000000) throw new Error("Integration attempt limit reached.");
+      }
+      return this.t;
+    }
+    points() {return this.chains.map(c=>positions(c.chain,this.y,c.offset));}
+    energyErrors() {return this.chains.map((c,i)=>Math.abs(energy(c.chain,this.y,c.offset)-this.initialEnergy[i])/c.energyScale);}
+  }
+  return {G,SAMPLE_HZ,System,positions,energy,defaults,newPendulum,newLink,clone,rules,validate};
+})();
+
+if(typeof document!=="undefined") (() => {
+  const P=PendulumPhysics, $=id=>document.getElementById(id);
+  const colors=["#6755db","#df7151","#218c99","#a17b22"];
+  let accepted=P.defaults(),draft=P.clone(accepted),system=new P.System(accepted);
+  let state="ready",speed=1,valid=true,trailsEnabled=true,trails=accepted.map(()=>[]);
+  let lastFrame=null,dirty=true,wallWindow=0,simWindow=0,effectiveSpeed=1,lagging=false,numericalError="";
+  let width=0,height=0,scale=1,dpr=1;
+  const canvas=$("scene"),ctx=canvas.getContext("2d"),speedButtons=[...document.querySelectorAll("[data-speed]")];
+  const labels={length:"Length",mass:"Mass",angle:"Angle"};
+  function clearTrails(seed=false) {
+    trails=accepted.map(()=>[]);
+    if(seed&&trailsEnabled) recordTrail(system.t,system);
+    dirty=true;
+  }
+  function recordTrail(t,model) {
+    if(!trailsEnabled) return;
+    model.points().forEach((points,i)=>{
+      const tip=points[points.length-1],history=trails[i];
+      history.push({t,x:tip.x,y:tip.y});
+      while(history.length&&(history[0].t<t-10 || history.length>P.SAMPLE_HZ*10+2)) history.shift();
+    });
+  }
+  function pruneTrails() {
+    for(const history of trails) while(history.length&&history[0].t<system.t-10) history.shift();
+  }
+  function renderForm() {
+    $("pendulum-count").value=String(draft.length);
+    $("pendulum-cards").innerHTML=draft.map((pendulum,p)=>`<section class="pendulum-card" aria-labelledby="pendulum-${p}"><div class="pendulum-header"><h3 id="pendulum-${p}" class="pendulum-name"><span class="dot" style="--color:${colors[p]}"></span>Pendulum ${String(p+1).padStart(2,"0")}</h3><label class="link-count">Links <select data-link-count="${p}" aria-label="Number of links for pendulum ${p+1}">${[1,2,3,4].map(n=>`<option ${n===pendulum.links.length?"selected":""}>${n}</option>`).join("")}</select></label></div>${pendulum.links.map((link,l)=>`<div class="link-row"><div class="link-label">LINK ${l+1}${l===0?" / from pivot":""}</div><div class="fields">${Object.keys(labels).map(key=>{
+      const id=`p${p}-l${l}-${key}`,rule=P.rules[key];
+      return `<div class="field"><label for="${id}">${labels[key]} <span>· ${rule.unit}</span></label><input id="${id}" type="number" inputmode="${key==="angle"?"text":"decimal"}" required min="${rule.min}" max="${rule.max}" step="${rule.step}" data-p="${p}" data-l="${l}" data-key="${key}" aria-label="Pendulum ${p+1}, link ${l+1}, ${key} in ${rule.unit}" aria-describedby="${id}-error"><span id="${id}-error" class="field-error" aria-live="polite"></span></div>`;
+    }).join("")}</div></div>`).join("")}</section>`).join("");
+    document.querySelectorAll("[data-key]").forEach(input=>{input.value=draft[+input.dataset.p].links[+input.dataset.l][input.dataset.key];});
+    $("configuration").disabled=state!=="ready";
+  }
+  function renderLegend() {
+    $("legend").innerHTML=accepted.map((_,i)=>`<span class="legend-item"><span class="dot" style="--color:${colors[i]}"></span>P${i+1}</span>`).join("");
+  }
+  function validateForm() {
+    valid=true;
+    document.querySelectorAll("[data-key]").forEach(input=>{
+      const error=P.validate(input.value,input.dataset.key);
+      input.setAttribute("aria-invalid",String(!!error));
+      $(input.id+"-error").textContent=error;
+      if(error) valid=false;
+    });
+    return valid;
+  }
+  function acceptEdit() {
+    clearTrails();
+    if(validateForm()) {
+      accepted=draft.map(p=>({links:p.links.map(link=>Object.fromEntries(Object.keys(labels).map(key=>[key,Number(link[key])])))}));
+      system=new P.System(accepted); clearTrails(); renderLegend(); updateScale();
+    }
+    syncUI();dirty=true;
+  }
+  $("configuration").addEventListener("input",event=>{
+    const input=event.target;
+    if(state!=="ready"||!input.dataset.key) return;
+    draft[+input.dataset.p].links[+input.dataset.l][input.dataset.key]=input.value;
+    acceptEdit();
+  });
+  $("configuration").addEventListener("change",event=>{
+    if(state!=="ready") return;
+    const input=event.target;
+    if(input.id==="pendulum-count") {
+      const count=+input.value;
+      while(draft.length<count) draft.push(P.newPendulum());
+      draft.length=count; renderForm();acceptEdit();
+    } else if(input.dataset.linkCount!==undefined) {
+      const links=draft[+input.dataset.linkCount].links,count=+input.value;
+      while(links.length<count) links.push(P.newLink());
+      links.length=count;renderForm();acceptEdit();
+    }
+  });
+  function resetTiming() {lastFrame=null;wallWindow=0;simWindow=0;effectiveSpeed=speed;lagging=false;}
+  function syncUI() {
+    const action=state==="ready"?"Start":state==="running"?"Pause":"Resume";
+    $("action-label").textContent=action;$("action-icon").textContent=state==="running"?"Ⅱ":"▶";
+    $("start").disabled=(state==="ready"&&!valid)||!!numericalError;
+    $("configuration").disabled=state!=="ready";
+    $("edit-state").textContent=state==="ready"?"EDITABLE":"LOCKED";
+    $("settings-hint").textContent=state==="ready"?"A tiny difference can change everything.":"Reset to edit the initial conditions.";
+    $("status").textContent=document.hidden&&state==="running"?"Tab hidden":state==="ready"?"Ready":state==="running"?"Running":"Paused";
+    $("status").dataset.state=state;
+    speedButtons.forEach(button=>{button.disabled=state==="ready";button.setAttribute("aria-pressed",String(+button.dataset.speed===speed));});
+    $("speed").textContent=`×${speed}`;
+    updateMetrics();
+  }
+  function updateMetrics() {
+    $("time").textContent=system.t.toFixed(3);
+    const drift=Math.max(...system.energyErrors());
+    $("energy").textContent=drift.toExponential(2);
+    const feedback=$("feedback");feedback.className="feedback";
+    if(numericalError) {feedback.textContent=numericalError;feedback.classList.add("error");}
+    else if(!valid) {feedback.textContent="Check the highlighted fields. Preview shows the last valid setup.";feedback.classList.add("error");}
+    else if(document.hidden&&state==="running") feedback.textContent="Tab hidden — simulation time is frozen.";
+    else if(state==="running"&&lagging) {feedback.textContent=`Compute-limited · ${effectiveSpeed.toFixed(1)}× achieved of ${speed}×. Accuracy preserved; no catch-up.`;feedback.classList.add("warning");}
+    else feedback.textContent=state==="ready"?"Adjust the setup, then set it in motion.":state==="paused"?"Paused. Positions, velocities, time, and trails are held.":"In motion · all pendulums share the same simulation time.";
+    if(!numericalError&&valid&&drift>1e-5) {feedback.textContent+=" Energy drift is elevated; long-term trajectories may be unreliable. Reset to restart.";feedback.classList.add("warning");}
+  }
+  $("start").addEventListener("click",()=>{
+    if(numericalError) return;
+    if(state==="ready") {if(!validateForm()) {syncUI();return;}state="running";clearTrails(true);}
+    else state=state==="running"?"paused":"running";
+    resetTiming();syncUI();dirty=true;
+  });
+  $("reset").addEventListener("click",()=>{
+    state="ready";speed=1;valid=true;numericalError="";draft=P.clone(accepted);system=new P.System(accepted);
+    clearTrails();resetTiming();renderForm();renderLegend();updateScale();syncUI();
+  });
+  speedButtons.forEach(button=>button.addEventListener("click",()=>{
+    if(state==="ready") return;
+    speed=+button.dataset.speed;resetTiming();syncUI();
+  }));
+  $("trails").addEventListener("change",()=>{trailsEnabled=$("trails").checked;clearTrails(trailsEnabled);});
+  document.addEventListener("visibilitychange",()=>{resetTiming();syncUI();dirty=true;});
+  function updateScale() {
+    const reach=Math.max(...accepted.map(p=>p.links.reduce((sum,l)=>sum+l.length,0)));
+    scale=Math.max(1,Math.min(width,height)/2-32)/reach;
+    $("scale-note").textContent=`Max reach ${Number(reach.toFixed(2))} m · shared scale`;
+    dirty=true;
+  }
+  function resize() {
+    const rect=canvas.getBoundingClientRect();width=rect.width;height=rect.height;dpr=window.devicePixelRatio||1;
+    canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);updateScale();
+  }
+  new ResizeObserver(resize).observe(canvas);
+  window.addEventListener("resize",resize);
+  function draw() {
+    if(!width||!height) return;
+    ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);
+    const cx=width/2,cy=height/2,reach=Math.max(...accepted.map(p=>p.links.reduce((s,l)=>s+l.length,0)));
+    const grid=[.25,.5,1,2,5,10].find(v=>v>=reach/4)||10,spacing=grid*scale;
+    ctx.lineWidth=1;ctx.strokeStyle="#edf0f4";ctx.beginPath();
+    for(let x=cx%spacing;x<width;x+=spacing) {ctx.moveTo(x,0);ctx.lineTo(x,height);}
+    for(let y=cy%spacing;y<height;y+=spacing) {ctx.moveTo(0,y);ctx.lineTo(width,y);}
+    ctx.stroke();
+    ctx.setLineDash([3,5]);ctx.strokeStyle="#dfe3eb";ctx.beginPath();ctx.arc(cx,cy,reach*scale,0,2*Math.PI);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx,16);ctx.lineTo(cx,height-16);ctx.moveTo(16,cy);ctx.lineTo(width-16,cy);ctx.stroke();ctx.setLineDash([]);
+    if(trailsEnabled) {
+      ctx.lineWidth=.6;ctx.lineCap="butt";ctx.lineJoin="round";
+      // Redraw from bounded world-space history, never accumulate canvas paint.
+      // Time-age buckets keep stroke cost low and opacity independent of frame rate/speed.
+      trails.forEach((history,p)=>{
+        ctx.strokeStyle=colors[p];
+        for(let bin=0;bin<24;bin++) {
+          ctx.globalAlpha=.42*(bin+.5)/24;ctx.beginPath();
+          for(let i=1;i<history.length;i++) {
+            const a=history[i-1],b=history[i],age=(system.t-b.t)/10;
+            if(Math.max(0,Math.min(23,Math.floor((1-age)*24)))!==bin) continue;
+            ctx.moveTo(cx+a.x*scale,cy+a.y*scale);ctx.lineTo(cx+b.x*scale,cy+b.y*scale);
+          }
+          ctx.stroke();
+        }
+      });ctx.globalAlpha=1;
+    }
+    system.points().forEach((points,p)=>{
+      ctx.strokeStyle=colors[p];ctx.lineWidth=1.8;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(cx,cy);
+      for(const point of points) ctx.lineTo(cx+point.x*scale,cy+point.y*scale);
+      ctx.stroke();
+      points.forEach((point,i)=>{
+        ctx.beginPath();ctx.arc(cx+point.x*scale,cy+point.y*scale,i===points.length-1?4.5:3.5,0,2*Math.PI);
+        ctx.fillStyle=colors[p];ctx.fill();ctx.strokeStyle="#fff";ctx.lineWidth=1.2;ctx.stroke();
+      });
+    });
+    ctx.beginPath();ctx.arc(cx,cy,5,0,2*Math.PI);ctx.fillStyle="#30374a";ctx.fill();ctx.strokeStyle="#fff";ctx.lineWidth=2;ctx.stroke();
+    dirty=false;
+  }
+  function frame(now) {
+    if((window.devicePixelRatio||1)!==dpr) resize();
+    if(!document.hidden&&state==="running") {
+      if(lastFrame!==null) {
+        const realDelta=Math.max(0,(now-lastFrame)/1000),before=system.t;
+        // A bounded per-frame work budget preserves responsiveness. No backlog is kept.
+        try {system.advanceTo(system.t+Math.min(realDelta,.1)*speed,8,recordTrail);}
+        catch(error) {numericalError=error.message;state="paused";resetTiming();syncUI();}
+        wallWindow+=realDelta;simWindow+=system.t-before;
+        if(wallWindow>=.5) {effectiveSpeed=simWindow/wallWindow;lagging=effectiveSpeed<speed*.92;wallWindow=0;simWindow=0;}
+        pruneTrails();dirty=true;updateMetrics();
+      }
+      lastFrame=now;
+    } else lastFrame=null;
+    if(dirty) draw();
+    requestAnimationFrame(frame);
+  }
+  // Read-only copies for reproducible diagnostics; controls remain ordinary DOM controls.
+  window.pendulumLab=Object.freeze({snapshot:()=>({state,speed,valid,trailsEnabled,time:system.t,y:Array.from(system.y),config:P.clone(accepted),trails:P.clone(trails),points:system.points(),energyErrors:system.energyErrors(),acceptedSteps:system.accepted,rejectedSteps:system.rejected,lagging,effectiveSpeed,scale,width,height,hidden:document.hidden})});
+  renderForm();renderLegend();resize();syncUI();requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

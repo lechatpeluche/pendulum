@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-Link Pendulum Lab</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --panel: #ffffff;
+    --border: #d9dee5;
+    --text: #1c2430;
+    --muted: #5c6774;
+    --accent: #2b5cd9;
+    --error: #c62828;
+    --p1: #e5484d;
+    --p2: #2f9e63;
+    --p3: #3e69d9;
+    --p4: #9a5cc9;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    padding: 10px 16px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  header h1 { font-size: 18px; margin: 0 8px 0 0; font-weight: 650; }
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; flex: 1 1 auto; }
+  .controls-right { margin-left: auto; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  button {
+    font: inherit;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--panel);
+    color: var(--text);
+    cursor: pointer;
+    min-height: 36px;
+    min-width: 44px;
+    touch-action: manipulation;
+  }
+  button:hover:not(:disabled) { background: #eef1f5; }
+  button:active:not(:disabled) { transform: translateY(1px); }
+  button:disabled { opacity: 0.45; cursor: default; }
+  button:focus-visible, input:focus-visible, select:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  #btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  #btn-primary:hover:not(:disabled) { background: #234cb0; }
+  .speed-group { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .speed-group button {
+    border: none; border-radius: 0;
+    min-width: 40px; padding: 6px 8px; min-height: 36px;
+    border-right: 1px solid var(--border);
+  }
+  .speed-group button:last-child { border-right: none; }
+  .speed-group button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  .readout { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .readout .label { color: var(--muted); font-size: 13px; }
+  #lag-indicator {
+    display: none;
+    background: #fff3cd;
+    color: #7a5b00;
+    border: 1px solid #e6d28a;
+    border-radius: 8px;
+    padding: 3px 10px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  label.checkbox { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; }
+  label.checkbox input { width: 18px; height: 18px; }
+
+  main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 14px;
+    padding: 14px 16px 24px;
+    max-width: 1280px;
+    margin: 0 auto;
+    align-items: start;
+  }
+  #scene-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px;
+    min-width: 0;
+  }
+  #scene-wrap { position: relative; width: 100%; }
+  #scene {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    max-height: 74vh;
+    max-width: calc(74vh * 1);
+    margin: 0 auto;
+    border-radius: 8px;
+    background: #fbfcfe;
+  }
+  #legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    justify-content: center;
+    padding: 8px 4px 2px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+  .legend-swatch { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+
+  #settings {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    min-width: 0;
+  }
+  #settings h2 { font-size: 15px; margin: 0 0 10px; font-weight: 650; }
+  .pend-count-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .pend-count-row label { font-size: 14px; color: var(--muted); }
+  select, input[type="number"] {
+    font: inherit;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 6px;
+    background: #fff;
+    color: var(--text);
+    min-height: 34px;
+  }
+  select { min-width: 70px; }
+  fieldset {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 0 0 12px;
+    padding: 10px 12px 12px;
+    min-width: 0;
+  }
+  fieldset legend {
+    font-weight: 650;
+    font-size: 14px;
+    padding: 0 6px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .links-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .links-row label { font-size: 13px; color: var(--muted); }
+  .link-grid {
+    display: grid;
+    grid-template-columns: 44px minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);
+    gap: 4px 8px;
+    align-items: center;
+  }
+  .link-grid .head { font-size: 12px; color: var(--muted); }
+  .field-cell { display: flex; align-items: center; gap: 3px; min-width: 0; flex-wrap: wrap; }
+  .field-cell input { width: 100%; min-width: 0; padding: 5px 4px; }
+  .field-cell .unit { font-size: 12px; color: var(--muted); flex: 0 0 auto; }
+  .error-msg {
+    color: var(--error);
+    font-size: 12px;
+    margin: 2px 0 0;
+    min-height: 0;
+    flex: 1 1 100%;
+  }
+  .error-msg:empty { display: none; }
+  .field-invalid input { border-color: var(--error); }
+  .grid-error {
+    color: var(--error);
+    font-size: 12px;
+    margin-top: 2px;
+  }
+  #global-error {
+    color: var(--error);
+    font-size: 13px;
+    margin: 4px 0 0;
+    min-height: 18px;
+  }
+  .status-line { font-size: 13px; color: var(--muted); margin-top: 8px; }
+
+  @media (max-width: 900px) {
+    main { grid-template-columns: minmax(0, 1fr); }
+    #scene { max-height: 60vh; max-width: calc(60vh * 1); }
+  }
+  @media (max-width: 400px) {
+    header { padding: 8px 10px; }
+    header h1 { font-size: 16px; width: 100%; margin: 0; }
+    main { padding: 10px 8px 18px; gap: 10px; }
+    .link-grid { grid-template-columns: 38px minmax(0,1fr) minmax(0,1fr) minmax(0,1fr); gap: 4px 5px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Multi-Link Pendulum Lab</h1>
+  <div class="controls">
+    <button id="btn-start" type="button">Start</button>
+    <button id="btn-reset" type="button">Reset</button>
+    <span class="speed-group" role="group" aria-label="Simulation speed">
+      <button type="button" data-speed="1" aria-pressed="true">x1</button>
+      <button type="button" data-speed="2" aria-pressed="false">x2</button>
+      <button type="button" data-speed="5" aria-pressed="false">x5</button>
+      <button type="button" data-speed="10" aria-pressed="false">x10</button>
+    </span>
+    <label class="checkbox"><input type="checkbox" id="trails-toggle" checked> Trails</label>
+    <div id="lag-indicator" role="status">Lag: behind 0.0 s</div>
+  </div>
+  <div class="controls-right">
+    <div class="readout"><span class="label">Time</span> <span id="time-display">0.00 s</span></div>
+    <div class="readout"><span class="label">Speed</span> <span id="speed-display">x1</span></div>
+  </div>
+</header>
+<main>
+  <section id="scene-panel" aria-label="Visualization">
+    <div id="scene-wrap"><canvas id="scene" width="800" height="800"></canvas></div>
+    <div id="legend" aria-label="Pendulum color legend"></div>
+  </section>
+  <section id="settings" aria-label="Settings">
+    <h2>Settings</h2>
+    <div class="pend-count-row">
+      <label for="pend-count">Pendulums</label>
+      <select id="pend-count" aria-label="Number of pendulums"></select>
+    </div>
+    <p id="global-error" role="alert"></p>
+    <div id="pendulum-groups"></div>
+    <p class="status-line" id="status-line">Not started. Edit the settings, then press Start.</p>
+  </section>
+</main>
+<noscript><p style="padding:16px">This application requires JavaScript.</p></noscript>
+<script>
+"use strict";
+/* =====================================================================
+ * Multi-Link Pendulum Lab
+ * Single-file app: physics (RK45 adaptive), model (state machine,
+ * validation, trails), view (DOM + Canvas 2D).
+ * ===================================================================== */
+
+/* ----------------------------- Physics ------------------------------ */
+/*
+ * Planar n-link pendulum. State vector y = [theta_1..theta_n, omega_1..omega_n]
+ * with theta measured from the downward vertical (radians, unbounded).
+ * Point masses m_i at the end of each link; rods are massless and rigid.
+ *
+ * Equations of motion (full nonlinear, no small-angle approximation):
+ *   sum_k S_jk l_j l_k cos(th_j - th_k) al_k
+ *     + sum_k S_jk l_j l_k sin(th_j - th_k) om_k^2
+ *     + g S_jj l_j sin(th_j) = 0,   j = 1..n
+ * where S_jk = sum of m_i over i >= max(j,k).
+ *
+ * Integrated with the Dormand-Prince RK4(5) method and embedded local
+ * error control (rtol / atol per state variable). The integration step
+ * is chosen by the error controller, independent of the frame rate.
+ */
+const Physics = (() => {
+  const G = 9.81;
+  const RTOL_DEFAULT = 1e-9;
+  const ATOL_DEFAULT = 1e-11;
+  const HMAX_DEFAULT = 0.01;
+
+  /* Dormand-Prince RK4(5) Butcher tableau (7 stages) */
+  const DP_A2 = [1/5];
+  const DP_A3 = [3/40, 9/40];
+  const DP_A4 = [44/45, -56/15, 32/9];
+  const DP_A5 = [19372/6561, -25360/2187, 64448/6561, -212/729];
+  const DP_A6 = [9017/3168, -355/33, 46732/5247, 49/176, -5103/18656];
+  const DP_B4 = [35/384, 0, 500/1113, 125/192, -2187/6784, 11/84];   /* 4th order */
+  const DP_B5 = [5321/57600, 0, 7429/16695, 1321/1920, -126603/339200, 121/700, -1/40]; /* 5th order */
+
+  function solveLinear(a, b, x, n) {
+    /* Gaussian elimination with partial pivoting. a: n*n row-major, b: n. */
+    for (let col = 0; col < n; col++) {
+      let piv = col;
+      for (let r = col + 1; r < n; r++) {
+        if (Math.abs(a[r * n + col]) > Math.abs(a[piv * n + col])) piv = r;
+      }
+      if (piv !== col) {
+        for (let c = col; c < n; c++) {
+          const t = a[col * n + c]; a[col * n + c] = a[piv * n + c]; a[piv * n + c] = t;
+        }
+        const tb = b[col]; b[col] = b[piv]; b[piv] = tb;
+      }
+      const d = a[col * n + col];
+      if (d === 0) return false;
+      for (let r = col + 1; r < n; r++) {
+        const f = a[r * n + col] / d;
+        if (f === 0) continue;
+        for (let c = col; c < n; c++) a[r * n + c] -= f * a[col * n + c];
+        b[r] -= f * b[col];
+      }
+    }
+    for (let r = n - 1; r >= 0; r--) {
+      let s = b[r];
+      for (let c = r + 1; c < n; c++) s -= a[r * n + c] * x[c];
+      x[r] = s / a[r * n + r];
+    }
+    return true;
+  }
+
+  function createPendulum(lengths, masses, angles, opts) {
+    const n = lengths.length;
+    const o = opts || {};
+    const p = {
+      n: n,
+      l: Float64Array.from(lengths),
+      m: Float64Array.from(masses),
+      suff: new Float64Array(n),
+      A: new Float64Array(n * n),
+      rhs: new Float64Array(n),
+      alpha: new Float64Array(n),
+      dy: new Float64Array(2 * n),
+      y: new Float64Array(2 * n),
+      tmp: new Float64Array(2 * n),
+      k: [0,1,2,3,4,5,6].map(() => new Float64Array(2 * n)),
+      t: 0,
+      h: Math.min(o.hMax || HMAX_DEFAULT, 1),
+      rtol: o.rtol || RTOL_DEFAULT,
+      atol: o.atol || ATOL_DEFAULT,
+      hMax: o.hMax || HMAX_DEFAULT,
+      onStep: o.onStep || null
+    };
+    let s = 0;
+    for (let i = n - 1; i >= 0; i--) { s += p.m[i]; p.suff[i] = s; }
+    for (let i = 0; i < n; i++) { p.y[i] = angles[i]; p.y[n + i] = 0; }
+
+    function deriv(y, out) {
+      const A = p.A, rhs = p.rhs, l = p.l, suff = p.suff;
+      for (let j = 0; j < n; j++) {
+        let r = -G * suff[j] * l[j] * Math.sin(y[j]);
+        for (let k = 0; k < n; k++) {
+          const w = suff[k > j ? k : j] * l[j] * l[k];
+          const d = y[j] - y[k];
+          A[j * n + k] = w * Math.cos(d);
+          r -= w * Math.sin(d) * y[n + k] * y[n + k];
+        }
+        rhs[j] = r;
+      }
+      if (!solveLinear(A, rhs, p.alpha, n)) throw new Error("Singular mass matrix");
+      for (let i = 0; i < n; i++) { out[i] = y[n + i]; out[n + i] = p.alpha[i]; }
+    }
+
+    function axpy(out, y, hstep, ks, cs) {
+      for (let i = 0; i < 2 * n; i++) {
+        let v = y[i];
+        for (let s2 = 0; s2 < ks.length; s2++) v += hstep * cs[s2] * ks[s2][i];
+        out[i] = v;
+      }
+    }
+
+    /* Advance exactly to targetT (>= p.t) using adaptive RK45. */
+    function integrate(targetT) {
+      let guard = 0;
+      while (targetT - p.t > 1e-13) {
+        if (++guard > 1e7) throw new Error("Integration did not converge");
+        const h = Math.min(p.h, targetT - p.t);
+        if (!(h > 0)) break;
+        const y = p.y, K = p.k;
+        deriv(y, K[0]);
+        axpy(p.tmp, y, h, [K[0]], DP_A2);        deriv(p.tmp, K[1]);
+        axpy(p.tmp, y, h, [K[0], K[1]], DP_A3);  deriv(p.tmp, K[2]);
+        axpy(p.tmp, y, h, [K[0], K[1], K[2]], DP_A4);  deriv(p.tmp, K[3]);
+        axpy(p.tmp, y, h, [K[0], K[1], K[2], K[3]], DP_A5);  deriv(p.tmp, K[4]);
+        axpy(p.tmp, y, h, [K[0], K[1], K[2], K[3], K[4]], DP_A6);  deriv(p.tmp, K[5]);
+        /* 4th-order endpoint, then the free 7th stage k6 = f(y4) */
+        for (let i = 0; i < 2 * n; i++) {
+          let v = y[i];
+          for (let s2 = 0; s2 < 6; s2++) v += h * DP_B4[s2] * K[s2][i];
+          p.tmp[i] = v;
+        }
+        deriv(p.tmp, K[6]);
+        /* 5th-order candidate (includes -1/40 * k6) and embedded error */
+        let errNorm = 0;
+        for (let i = 0; i < 2 * n; i++) {
+          let y5 = y[i];
+          for (let s2 = 0; s2 < 7; s2++) y5 += h * DP_B5[s2] * K[s2][i];
+          p.tmp[i] = y5;
+          const e = Math.abs(h * ((DP_B5[0]-DP_B4[0]) * K[0][i] + (DP_B5[2]-DP_B4[2]) * K[2][i] +
+            (DP_B5[3]-DP_B4[3]) * K[3][i] + (DP_B5[4]-DP_B4[4]) * K[4][i] +
+            (DP_B5[5]-DP_B4[5]) * K[5][i] + DP_B5[6] * K[6][i])) / (p.atol + p.rtol * Math.abs(y5));
+          if (e > errNorm) errNorm = e;
+        }
+        if (errNorm <= 1) {
+          y.set(p.tmp);
+          p.t += h;
+          p.h = Math.min(p.hMax, Math.max(0.2, 0.9 * Math.pow(errNorm === 0 ? 1e-30 : errNorm, -1/5)) * h);
+          if (p.onStep) p.onStep(p.t, y);
+        } else {
+          p.h = Math.max(0.2, 0.9 * Math.pow(errNorm, -0.7)) * h;
+        }
+      }
+    }
+
+    return {
+      get t() { return p.t; },
+      get y() { return p.y; },
+      get n() { return p.n; },
+      get l() { return p.l; },
+      integrate: integrate,
+      /* Tip (end of last link) position, screen coordinates (y downward). */
+      tip() {
+        const y = p.y;
+        let x = 0, yy = 0;
+        for (let i = 0; i < n; i++) {
+          x += p.l[i] * Math.sin(y[i]);
+          yy += p.l[i] * Math.cos(y[i]);
+        }
+        return { x: x, y: yy };
+      },
+      /* Joint positions including pivot (index 0 = pivot at origin). */
+      joints() {
+        const y = p.y;
+        const out = [{ x: 0, y: 0 }];
+        let x = 0, yy = 0;
+        for (let i = 0; i < n; i++) {
+          x += p.l[i] * Math.sin(y[i]);
+          yy += p.l[i] * Math.cos(y[i]);
+          out.push({ x: x, y: yy });
+        }
+        return out;
+      },
+      energy() {
+        const y = p.y;
+        let T = 0;
+        for (let j = 0; j < n; j++) for (let k = 0; k < n; k++) {
+          const w = p.suff[k > j ? k : j] * p.l[j] * p.l[k];
+          T += 0.5 * w * Math.cos(y[j] - y[k]) * y[n + j] * y[n + k];
+        }
+        let V = 0;
+        for (let j = 0; j < n; j++) V -= G * p.suff[j] * p.l[j] * Math.cos(y[j]);
+        return { T: T, V: V, E: T + V };
+      }
+    };
+  }
+
+  return { G: G, RTOL_DEFAULT: RTOL_DEFAULT, ATOL_DEFAULT: ATOL_DEFAULT, HMAX_DEFAULT: HMAX_DEFAULT, createPendulum: createPendulum };
+})();
+
+/* ------------------------------- Model ------------------------------ */
+/*
+ * Pure state machine: accepted configuration, validation, start/pause/
+ * resume/reset, speed, trails, simulation clock. No DOM access, so it
+ * can be exercised directly by automated checks.
+ */
+const Model = (() => {
+  const G = Physics.G;
+  const TRAIL_WINDOW_S = 10;
+  const TRAIL_DT_S = 1 / 60;
+  const MAX_FRAME_DT_S = 0.1;      /* clamp: sim time freezes while tab hidden */
+  const SPEEDS = [1, 2, 5, 10];
+  const COLORS = ["#e5484d", "#2f9e63", "#3e69d9", "#9a5cc9"];
+  const NAMES = ["red", "green", "blue", "purple"];
+  const NUM_RE = /^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/;
+
+  const FIELD_SPECS = {
+    length: { min: 0.25, max: 5,   unit: "m"  },
+    mass:   { min: 1,    max: 500, unit: "kg" },
+    angle:  { min: -180, max: 180, unit: "\u00B0" }
+  };
+
+  function defaultLink() { return { length: 1, mass: 1, angle: 0 }; }
+
+  function defaultConfig() {
+    return {
+      pendulums: [
+        { links: [ { length: 1, mass: 1, angle: 120 },    { length: 1, mass: 1, angle: -10 } ] },
+        { links: [ { length: 1, mass: 1, angle: 120.01 }, { length: 1, mass: 1, angle: -10 } ] }
+      ]
+    };
+  }
+
+  function parseNum(raw) {
+    if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
+    const s = String(raw).trim();
+    if (s === "" || !NUM_RE.test(s)) return null;
+    const v = Number(s);
+    return Number.isFinite(v) ? v : null;
+  }
+
+  function cloneConfig(cfg) {
+    return { pendulums: cfg.pendulums.map(pd => ({ links: pd.links.map(l => ({ length: l.length, mass: l.mass, angle: l.angle })) })) };
+  }
+
+  function create(config) {
+    const model = {
+      config: cloneConfig(config || defaultConfig()),
+      errors: {},            /* key "p:i:field" -> message */
+      state: "idle",         /* idle | running | paused */
+      time: 0,
+      speed: 1,
+      trailsOn: true,
+      physics: null,         /* array of Physics pendulums while active */
+      trails: [],            /* per pendulum: array of [x, y, tSim] */
+      trailNext: [],
+      lastWallFrame: null
+    };
+
+    function trailHook(pendIdx) {
+      return (t, y) => {
+        if (!model.trailsOn) return;
+        const buf = model.trails[pendIdx];
+        let next = model.trailNext[pendIdx];
+        if (next === undefined || next > t + 1e-12) next = t;
+        while (t - next >= TRAIL_DT_S - 1e-12) {
+          /* Record the tip at this step's accurate state. */
+          const n = model.physics[pendIdx].n;
+          let tx = 0, ty = 0;
+          const lens = model.physics[pendIdx].l;
+          for (let i = 0; i < n; i++) { tx += lens[i] * Math.sin(y[i]); ty += lens[i] * Math.cos(y[i]); }
+          buf.push([tx, ty, t]);
+          next += TRAIL_DT_S;
+        }
+        model.trailNext[pendIdx] = next;
+        /* prune outside the 10 s window */
+        const cutoff = t - TRAIL_WINDOW_S;
+        while (buf.length && buf[0][2] < cutoff - 1e-12) buf.shift();
+      };
+    }
+
+    function tipFromState(len, angles) {
+      let x = 0, yy = 0;
+      for (let i = 0; i < len.length; i++) {
+        x += len[i] * Math.sin(angles[i]);
+        yy += len[i] * Math.cos(angles[i]);
+      }
+      return { x: x, y: yy };
+    }
+
+    function clearTrails() {
+      model.trails = model.config.pendulums.map(() => []);
+      model.trailNext = model.config.pendulums.map(() => undefined);
+    }
+
+    function seedTrails() {
+      clearTrails();
+      model.trails = model.config.pendulums.map((pd, i) => {
+        if (model.physics) {
+          const tip = model.physics[i].tip();
+          return [[tip.x, tip.y, model.time]];
+        }
+        const ang = pd.links.map(l => l.angle * Math.PI / 180);
+        const tip = tipFromState(pd.links.map(l => l.length), ang);
+        return [[tip.x, tip.y, model.time]];
+      });
+      model.trailNext = model.config.pendulums.map(() => model.time);
+    }
+
+    function anyErrors() { return Object.keys(model.errors).length > 0; }
+
+    /* ----- configuration editing (only while idle) ----- */
+
+    function setPendulumCount(n) {
+      if (model.state !== "idle") return { ok: false, reason: "locked" };
+      n = Math.round(Number(n));
+      if (!Number.isInteger(n) || n < 1 || n > 4) return { ok: false, reason: "invalid" };
+      const cfg = model.config;
+      while (cfg.pendulums.length < n) cfg.pendulums.push({ links: [defaultLink(), defaultLink()] });
+      if (cfg.pendulums.length > n) cfg.pendulums.length = n;
+      /* drop stale errors */
+      for (const key of Object.keys(model.errors)) {
+        const parts = key.split(":");
+        if (Number(parts[0]) >= n) delete model.errors[key];
+        else {
+          const i = Number(parts[1]);
+          if (i >= cfg.pendulums[Number(parts[0])].links.length) delete model.errors[key];
+        }
+      }
+      clearTrails();
+      return { ok: true };
+    }
+
+    function setLinkCount(p, n) {
+      if (model.state !== "idle") return { ok: false, reason: "locked" };
+      n = Math.round(Number(n));
+      if (!Number.isInteger(n) || n < 1 || n > 4) return { ok: false, reason: "invalid" };
+      const pd = model.config.pendulums[p];
+      if (!pd) return { ok: false, reason: "invalid" };
+      while (pd.links.length < n) pd.links.push(defaultLink());
+      if (pd.links.length > n) pd.links.length = n;
+      for (const key of Object.keys(model.errors)) {
+        const parts = key.split(":");
+        if (Number(parts[0]) === p && Number(parts[1]) >= n) delete model.errors[key];
+      }
+      clearTrails();
+      return { ok: true };
+    }
+
+    function setField(p, i, field, raw) {
+      if (model.state !== "idle") return { ok: false, reason: "locked" };
+      const spec = FIELD_SPECS[field];
+      if (!spec) return { ok: false, reason: "invalid" };
+      const key = p + ":" + i + ":" + field;
+      const v = parseNum(raw);
+      const pd = model.config.pendulums[p];
+      const link = pd && pd.links[i];
+      if (!link) { delete model.errors[key]; return { ok: false, reason: "invalid" }; }
+      if (v === null) {
+        model.errors[key] = "Enter a valid number.";
+        return { ok: false, error: model.errors[key] };
+      }
+      if (v < spec.min || v > spec.max) {
+        model.errors[key] = "Must be between " + spec.min + " and " + spec.max + " " + spec.unit + ".";
+        return { ok: false, error: model.errors[key] };
+      }
+      delete model.errors[key];
+      link[field] = v;   /* keep full precision, never rounded */
+      clearTrails();     /* config edit clears trails (preview-only effect) */
+      return { ok: true, value: v };
+    }
+
+    /* ----- transport controls ----- */
+
+    function start() {
+      if (model.state !== "idle" || anyErrors()) return { ok: false, reason: anyErrors() ? "invalid" : "busy" };
+      model.physics = model.config.pendulums.map((pd, i) => {
+        const angles = pd.links.map(l => l.angle * Math.PI / 180);
+        return Physics.createPendulum(
+          pd.links.map(l => l.length),
+          pd.links.map(l => l.mass),
+          angles,
+          { onStep: trailHook(i) }
+        );
+      });
+      model.time = 0;
+      clearTrails();
+      seedTrails();
+      model.state = "running";
+      return { ok: true };
+    }
+
+    function pause() {
+      if (model.state !== "running") return { ok: false };
+      model.state = "paused";
+      return { ok: true };
+    }
+
+    function resume() {
+      if (model.state !== "paused") return { ok: false };
+      model.state = "running";
+      return { ok: true };
+    }
+
+    function reset() {
+      model.state = "idle";
+      model.time = 0;
+      model.speed = 1;
+      model.physics = null;
+      model.errors = {};     /* config already holds the last valid values */
+      clearTrails();
+      return { ok: true };
+    }
+
+    function setSpeed(s) {
+      s = Number(s);
+      if (SPEEDS.indexOf(s) < 0) return { ok: false };
+      model.speed = s;
+      return { ok: true };
+    }
+
+    function setTrails(on) {
+      model.trailsOn = !!on;
+      if (on) {
+        if (model.physics || model.state === "idle") seedTrails();
+      } else {
+        clearTrails();
+      }
+      return { ok: true };
+    }
+
+    /*
+     * Advance the simulation by wall-clock time (seconds).
+     * sim advance = min(wallDt, MAX_FRAME_DT_S) * speed.
+     * The clamp makes sim time freeze (rather than jump) when the tab was
+     * hidden for a long time, and bounds per-frame work.
+     */
+    function advance(wallDt) {
+      if (model.state !== "running") return 0;
+      const dt = Math.min(Math.max(wallDt, 0), MAX_FRAME_DT_S);
+      if (dt === 0) return 0;
+      const simDt = dt * model.speed;
+      const target = model.time + simDt;
+      for (const ph of model.physics) ph.integrate(target);
+      model.time = target;
+      return simDt;
+    }
+
+    /* Maximum total chain length across the selected pendulums (meters). */
+    function maxChainLength() {
+      let m = 0;
+      for (const pd of model.config.pendulums) {
+        let s = 0;
+        for (const l of pd.links) s += l.length;
+        if (s > m) m = s;
+      }
+      return m || 1;
+    }
+
+    /* Tip positions of final masses (meters, y downward) for current state. */
+    function tipPositions() {
+      if (model.physics) return model.physics.map(ph => ph.tip());
+      return model.config.pendulums.map(pd =>
+        tipFromState(pd.links.map(l => l.length), pd.links.map(l => l.angle * Math.PI / 180)));
+    }
+
+    function jointPositions() {
+      if (model.physics) return model.physics.map(ph => ph.joints());
+      return model.config.pendulums.map(pd => {
+        const out = [{ x: 0, y: 0 }];
+        let x = 0, yy = 0;
+        for (const l of pd.links) {
+          const a = l.angle * Math.PI / 180;
+          x += l.length * Math.sin(a);
+          yy += l.length * Math.cos(a);
+          out.push({ x: x, y: yy });
+        }
+        return out;
+      });
+    }
+
+    return {
+      /* state */
+      get config() { return model.config; },
+      get state() { return model.state; },
+      get time() { return model.time; },
+      get speed() { return model.speed; },
+      get trailsOn() { return model.trailsOn; },
+      get errors() { return model.errors; },
+      /* actions */
+      setPendulumCount, setLinkCount, setField,
+      start, pause, resume, reset, setSpeed, setTrails,
+      advance, clearErrors: () => { model.errors = {}; },
+      /* info */
+      canEdit: () => model.state === "idle",
+      hasErrors: anyErrors,
+      maxChainLength, tipPositions, jointPositions,
+      trailPoints: (i) => model.trails[i] || [],
+      snapshot: () => ({
+        state: model.state,
+        time: model.time,
+        speed: model.speed,
+        trailsOn: model.trailsOn,
+        pendulums: (model.physics || model.config.pendulums.map(() => null)).map((ph, i) => {
+          if (ph) return { angles: ph.y.slice(0, ph.n).map(v => v), omegas: ph.y.slice(ph.n).map(v => v) };
+          const pd = model.config.pendulums[i];
+          return { angles: pd.links.map(l => l.angle * Math.PI / 180), omegas: pd.links.map(() => 0) };
+        })
+      }),
+      energy: () => model.physics ? model.physics.map(ph => ph.energy().E) : null,
+      constants: { G, TRAIL_WINDOW_S, TRAIL_DT_S, MAX_FRAME_DT_S, SPEEDS, COLORS, NAMES, FIELD_SPECS, defaultConfig, defaultLink }
+    };
+  }
+
+  return { create: create, constants: { SPEEDS: SPEEDS, COLORS: COLORS, NAMES: NAMES, FIELD_SPECS: FIELD_SPECS, defaultConfig: defaultConfig, defaultLink: defaultLink } };
+})();
+
+/* ------------------------------- View ------------------------------- */
+if (typeof document !== "undefined" && document.getElementById) {
+
+const View = (() => {
+  const canvas = document.getElementById("scene");
+  const ctx = canvas.getContext("2d");
+  const $ = (id) => document.getElementById(id);
+  const model = Model.create(undefined);   /* default configuration */
+
+  const C = Model.constants;
+  let cssSize = 0;      /* CSS pixel side length of the canvas square */
+  let dpr = 1;
+
+  /* ---------- sizing ---------- */
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    dpr = Math.max(1, window.devicePixelRatio || 1);
+    cssSize = Math.max(1, Math.min(rect.width, rect.height));
+    const px = Math.round(cssSize * dpr);
+    if (canvas.width !== px || canvas.height !== px) {
+      canvas.width = px;
+      canvas.height = px;
+    }
+  }
+  window.addEventListener("resize", () => { resize(); draw(); });
+
+  /* ---------- settings form ---------- */
+  const pendCountSel = $("pend-count");
+  const groupsEl = $("pendulum-groups");
+  const globalErrorEl = $("global-error");
+
+  for (let i = 1; i <= 4; i++) {
+    const o = document.createElement("option");
+    o.value = String(i);
+    o.textContent = String(i);
+    pendCountSel.appendChild(o);
+  }
+  pendCountSel.value = String(model.config.pendulums.length);
+  pendCountSel.addEventListener("change", () => {
+    if (model.setPendulumCount(pendCountSel.value).ok) renderSettings();
+  });
+
+  function errKey(p, i, f) { return p + ":" + i + ":" + f; }
+
+  function renderSettings() {
+    const editable = model.canEdit();
+    /* pendulum count select */
+    pendCountSel.disabled = !editable;
+    pendCountSel.value = String(model.config.pendulums.length);
+    /* rebuild groups */
+    groupsEl.textContent = "";
+    model.config.pendulums.forEach((pd, p) => {
+      const fs = document.createElement("fieldset");
+      const lg = document.createElement("legend");
+      const dot = document.createElement("span");
+      dot.className = "legend-swatch";
+      dot.style.background = C.COLORS[p];
+      lg.appendChild(dot);
+      lg.appendChild(document.createTextNode("Pendulum " + (p + 1) + " (" + C.NAMES[p] + ")"));
+      fs.appendChild(lg);
+
+      const linksRow = document.createElement("div");
+      linksRow.className = "links-row";
+      const llabel = document.createElement("label");
+      llabel.textContent = "Links";
+      const lsel = document.createElement("select");
+      lsel.setAttribute("aria-label", "Pendulum " + (p + 1) + " number of links");
+      for (let i = 1; i <= 4; i++) {
+        const o = document.createElement("option");
+        o.value = String(i); o.textContent = String(i);
+        lsel.appendChild(o);
+      }
+      lsel.value = String(pd.links.length);
+      lsel.disabled = !editable;
+      lsel.addEventListener("change", () => {
+        if (model.setLinkCount(p, lsel.value).ok) renderSettings();
+      });
+      linksRow.appendChild(llabel);
+      linksRow.appendChild(lsel);
+      fs.appendChild(linksRow);
+
+      const grid = document.createElement("div");
+      grid.className = "link-grid";
+      grid.appendChild(head("Link"));
+      grid.appendChild(head("Length (m)"));
+      grid.appendChild(head("Mass (kg)"));
+      grid.appendChild(head("Angle (\u00B0)"));
+
+      pd.links.forEach((link, i) => {
+        const cell = document.createElement("div");
+        cell.className = "head";
+        cell.textContent = "L" + (i + 1);
+        grid.appendChild(cell);
+        ["length", "mass", "angle"].forEach((f) => {
+          grid.appendChild(makeField(p, i, f, link, editable));
+        });
+      });
+      fs.appendChild(grid);
+      groupsEl.appendChild(fs);
+    });
+    refreshErrors();
+  }
+
+  function head(t) {
+    const d = document.createElement("div");
+    d.className = "head";
+    d.textContent = t;
+    return d;
+  }
+
+  function makeField(p, i, f, link, editable) {
+    const spec = C.FIELD_SPECS[f];
+    const wrap = document.createElement("div");
+    wrap.className = "field-cell";
+    wrap.dataset.key = errKey(p, i, f);
+    const inp = document.createElement("input");
+    inp.type = "text";
+    inp.inputMode = "decimal";
+    inp.className = "num-input";
+    inp.setAttribute("aria-label", "Pendulum " + (p + 1) + " link " + (i + 1) + " " + f);
+    /* input step hint: length 0.01 m, mass 0.01 kg, angle 0.0001 deg */
+    const stepHint = f === "angle" ? 0.0001 : 0.01;
+    inp.value = String(roundForDisplay(link[f], f));
+    inp.dataset.stepHint = String(stepHint);
+    inp.disabled = !editable;
+    inp.title = spec.min + "\u2013" + spec.max + " " + spec.unit + ", step " + stepHint;
+    inp.addEventListener("input", () => {
+      if (!model.canEdit()) { inp.value = String(roundForDisplay(model.config.pendulums[p].links[i][f], f)); return; }
+      model.setField(p, i, f, inp.value);
+      refreshErrors();
+    });
+    inp.addEventListener("blur", () => {
+      if (!model.canEdit()) return;
+      const v = model.config.pendulums[p].links[i][f];
+      inp.value = String(roundForDisplay(v, f));
+    });
+    const unit = document.createElement("span");
+    unit.className = "unit";
+    unit.textContent = spec.unit === "\u00B0" ? "\u00B0" : spec.unit;
+    wrap.appendChild(inp);
+    wrap.appendChild(unit);
+    return wrap;
+  }
+
+  function roundForDisplay(v, f) {
+    /* display precision only; the model keeps full precision */
+    const digits = f === "angle" ? 4 : 2;
+    return parseFloat(v.toFixed(digits));
+  }
+
+  function refreshErrors() {
+    document.querySelectorAll("#settings .field-cell").forEach((wrap) => {
+      const msg = model.errors[wrap.dataset.key];
+      let e = wrap.querySelector(".error-msg");
+      if (msg) {
+        if (!e) {
+          e = document.createElement("div");
+          e.className = "error-msg";
+          wrap.appendChild(e);
+        }
+        e.textContent = msg;
+        wrap.classList.add("field-invalid");
+      } else {
+        if (e) e.remove();
+        wrap.classList.remove("field-invalid");
+      }
+    });
+    globalErrorEl.textContent = model.hasErrors()
+      ? "Fix the highlighted fields to start."
+      : "";
+    syncButtons();
+  }
+
+  /* ---------- header controls ---------- */
+  const btnStart = $("btn-start");
+  const btnReset = $("btn-reset");
+  const trailsToggle = $("trails-toggle");
+  const speedBtns = Array.from(document.querySelectorAll(".speed-group button"));
+  const timeDisplay = $("time-display");
+  const speedDisplay = $("speed-display");
+  const lagEl = $("lag-indicator");
+  const statusLine = $("status-line");
+
+  btnStart.addEventListener("click", () => {
+    if (model.state === "running") model.pause();
+    else if (model.state === "paused") model.resume();
+    else {
+      if (model.hasErrors()) { refreshErrors(); return; }
+      model.start();
+    }
+    syncButtons();
+  });
+  btnReset.addEventListener("click", () => {
+    model.reset();
+    renderSettings();   /* re-show accepted config, unlock fields */
+    timeDisplay.textContent = "0.00 s";
+    syncButtons();
+  });
+  speedBtns.forEach((b) => b.addEventListener("click", () => {
+    if (model.setSpeed(Number(b.dataset.speed)).ok) syncButtons();
+  }));
+  trailsToggle.addEventListener("change", () => {
+    model.setTrails(trailsToggle.checked);
+    syncButtons();
+  });
+
+  let behindRef = null;   /* {wall: performance.now()/1000, sim: model.time} */
+  function syncButtons() {
+    if (model.state === "running") btnStart.textContent = "Pause";
+    else if (model.state === "paused") btnStart.textContent = "Resume";
+    else btnStart.textContent = "Start";
+    btnStart.disabled = (model.state === "idle" && model.hasErrors());
+    speedBtns.forEach((b) => b.setAttribute("aria-pressed", String(Number(b.dataset.speed) === model.speed)));
+    speedDisplay.textContent = "x" + model.speed;
+    trailsToggle.checked = model.trailsOn;
+    if (model.state === "running") behindRef = { wall: performance.now() / 1000, sim: model.time };
+    else { behindRef = null; lagEl.style.display = "none"; lagEl.textContent = ""; }
+    if (model.state === "idle") statusLine.textContent = model.hasErrors()
+      ? "Configuration has errors."
+      : "Ready. Press Start.";
+    else if (model.state === "paused") statusLine.textContent = "Paused at t = " + model.time.toFixed(2) + " s.";
+    else if (model.state === "running") statusLine.textContent = "Running at x" + model.speed + ".";
+  }
+
+  /* ---------- legend ---------- */
+  const legendEl = $("legend");
+  function renderLegend() {
+    legendEl.textContent = "";
+    model.config.pendulums.forEach((pd, i) => {
+      const item = document.createElement("span");
+      item.className = "legend-item";
+      const sw = document.createElement("span");
+      sw.className = "legend-swatch";
+      sw.style.background = C.COLORS[i];
+      const tx = document.createElement("span");
+      tx.textContent = "Pendulum " + (i + 1) + " \u2014 " + C.NAMES[i];
+      item.appendChild(sw);
+      item.appendChild(tx);
+      legendEl.appendChild(item);
+    });
+  }
+  renderLegend();
+
+  /* ---------- rendering ---------- */
+  function draw() {
+    resize();
+    const S = canvas.width;                 /* device pixels */
+    const u = S / cssSize;                  /* device px per CSS px */
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, S, S);
+    /* scene background */
+    ctx.fillStyle = "#fbfcfe";
+    ctx.fillRect(0, 0, S, S);
+
+    const cx = S / 2, cy = S / 2;
+    const R = (S / 2 - 8 * u);
+    const scale = R / model.maxChainLength();
+
+    const joints = model.jointPositions();
+    const nP = joints.length;
+
+    /* trails first (under the rods) */
+    if (model.trailsOn) {
+      for (let i = 0; i < nP; i++) drawTrail(i, cx, cy, scale, u);
+    }
+
+    /* rods + masses */
+    for (let i = 0; i < nP; i++) {
+      const pts = joints[i].map(pt => ({ x: cx + pt.x * scale, y: cy + pt.y * scale }));
+      ctx.strokeStyle = C.COLORS[i];
+      ctx.lineWidth = 2.2 * u;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let j = 1; j < pts.length; j++) ctx.lineTo(pts[j].x, pts[j].y);
+      ctx.stroke();
+      /* pivot (draw once) */
+      if (i === 0) {
+        ctx.fillStyle = "#8a94a3";
+        ctx.beginPath();
+        ctx.arc(pts[0].x, pts[0].y, 3.5 * u, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      /* masses: small joint dots + tip marker */
+      const masses = model.config.pendulums[i].links.map(l => l.mass);
+      for (let j = 1; j < pts.length; j++) {
+        const r = Math.min(7, Math.max(3, 3 + 1.6 * Math.log10(masses[j - 1]))) * u;
+        ctx.fillStyle = C.COLORS[i];
+        ctx.beginPath();
+        ctx.arc(pts[j].x, pts[j].y, j === pts.length - 1 ? r * 1.15 : r * 0.8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+
+  function drawTrail(i, cx, cy, scale, u) {
+    const buf = model.trailPoints(i);
+    if (!buf || buf.length < 2) {
+      if (buf && buf.length === 1) {
+        /* single seed point: draw a small dot at the tip */
+        ctx.fillStyle = C.COLORS[i];
+        ctx.globalAlpha = 0.6;
+        ctx.beginPath();
+        ctx.arc(cx + buf[0][0] * scale, cy + buf[0][1] * scale, 1.2 * u, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+      return;
+    }
+    const tNow = model.time;
+    const win = C.TRAIL_WINDOW_S;
+    ctx.lineCap = "round";
+    ctx.lineWidth = 0.6 * u;   /* 0.6 CSS px, never more (0.75 cap respected) */
+    let prev = null;
+    for (let k = 0; k < buf.length; k++) {
+      const [x, y, t] = buf[k];
+      const age = tNow - t;
+      if (age > win) { prev = null; continue; }
+      const alpha = 0.55 * (1 - age / win);
+      const px = cx + x * scale, py = cy + y * scale;
+      if (prev && prev.px !== undefined) {
+        ctx.strokeStyle = C.COLORS[i];
+        ctx.globalAlpha = Math.max(0.02, alpha);
+        ctx.beginPath();
+        ctx.moveTo(prev.px, prev.py);
+        ctx.lineTo(px, py);
+        ctx.stroke();
+      }
+      prev = { px: px, py: py };
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  /* ---------- main loop ---------- */
+  let lastTs = null;
+  function frame(ts) {
+    const wallNow = ts / 1000;
+    if (lastTs === null) lastTs = wallNow;
+    const wallDt = wallNow - lastTs;
+    lastTs = wallNow;
+    if (model.state === "running") {
+      model.advance(wallDt);
+      timeDisplay.textContent = model.time.toFixed(2) + " s";
+      if (behindRef) {
+        const behind = (wallNow - behindRef.wall) * model.speed - (model.time - behindRef.sim);
+        if (behind > 0.25) {
+          lagEl.style.display = "inline-block";
+          lagEl.textContent = "Lag: behind " + behind.toFixed(1) + " s";
+        } else {
+          lagEl.style.display = "none";
+        }
+      }
+    }
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  /* document hidden: rAF stops automatically; the MAX_FRAME_DT clamp in
+     Model.advance makes the sim freeze (not jump) on return. */
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && model.state === "running") {
+      behindRef = { wall: performance.now() / 1000, sim: model.time };
+    }
+    lastTs = null;
+  });
+
+  /* initial render */
+  renderSettings();
+  syncButtons();
+  resize();
+  requestAnimationFrame(frame);
+
+  return { model: model };
+})();
+
+/* expose for automated checks / console */
+globalThis.PendulumLab = { Physics: Physics, Model: Model };
+} else {
+  /* Node (test) environment: expose the pure modules only. */
+  globalThis.PendulumLab = { Physics: Physics, Model: Model };
+}
+</script>
+</body>
+</html>
