@@ -58,13 +58,3 @@ OpenAI finished its recorded run **7.18× faster**, with fewer output tokens and
 One Qwen UI issue remains: configuration fields stay enabled during motion and pause, while the state model rejects edits. The published application retains this behavior.
 
 These are single completed runs with different reasoning settings, system instructions, backends, context limits and cache conditions. Earlier interrupted Qwen attempts and setup tuning are outside the table. The applications and model-written tests are preserved byte-for-byte; the demo annotations and this README were added afterward.
-
-## Reproduce the checks
-
-```sh
-node qwen/tests/run_checks.js
-node gpt/tests/physics-checks.cjs
-node gpt/tests/browser-checks.cjs
-```
-
-Use Node.js 22+. The last command requires Chrome/Chromium. All three suites passed again before publication on October 9, 2026; these later checks are outside the run metrics.
